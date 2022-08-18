@@ -1,4 +1,12 @@
-run_sequoia_extension <- function(x, facets = NULL, run_dupcheck = FALSE, run_parents = FALSE, run_pedigree = FALSE, min_maf = 0.3, min_ind = 0.5, ...){
+run_sequoia_extension <- function(x, facets = NULL, run_dupcheck = FALSE, 
+                                  run_parents = FALSE, run_pedigree = FALSE, 
+                                  min_maf = 0.3, min_ind = 0.5, ...,
+                                  internals){
+  
+  #===================internals=====================
+  for(i in 1:length(internals)){
+    assign(names(internals)[i], internals[[i]])
+  }
   
   #===================sanity checks===============
   # check that provided snpRdata objects are in the correct format

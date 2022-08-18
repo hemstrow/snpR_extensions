@@ -1,10 +1,16 @@
 plot_structure_map_extension <- function(assignments, k, facet, pop_coordinates, sf = NULL, sf_fill_colors = "viridis", sf_line_colors = "viridis",
                                          pop_names = T, viridis.option = "viridis", alt.palette = NULL,
                                          radius_scale = 0.05, label_args = NULL, crop = FALSE,
-                                         scale_bar = list(dist = 4, dist_unit = "km", transform = T), compass = list(symbol = 16)){
+                                         scale_bar = list(dist = 4, dist_unit = "km", transform = T), compass = list(symbol = 16),
+                                         internals){
 
   
   long <- lat <- pop <- NULL
+  
+  #===================internals=====================
+  for(i in 1:length(internals)){
+    assign(names(internals)[i], internals[[i]])
+  }
   
   #===================sanity checks=================
   msg <- character()
