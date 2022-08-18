@@ -2,6 +2,7 @@ plot_structure_map_extension <- function(assignments, k, facet, pop_coordinates,
                                          pop_names = T, viridis.option = "viridis", alt.palette = NULL,
                                          radius_scale = 0.05, label_args = NULL, crop = FALSE,
                                          scale_bar = list(dist = 4, dist_unit = "km", transform = T), compass = list(symbol = 16)){
+
   
   long <- lat <- pop <- NULL
   
