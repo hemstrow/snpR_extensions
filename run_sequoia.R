@@ -14,12 +14,6 @@ run_sequoia_extension <- function(x, facets = NULL, run_dupcheck = FALSE,
     stop("Not a snpRdata object.\n")
   }
   
-  if(utils::packageVersion("sequoia") < as.package_version("2.2")){
-    cat("Sequoia version is too old, version 2.2 or greater is required.\n")
-    .check.installed("remotes")
-    remotes::install_github("JiscaH/sequoia", ref = "stable")
-  }
-  
   
   msg <- character(0)
   warn <- character(0)

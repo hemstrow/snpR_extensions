@@ -13,14 +13,6 @@ plot_structure_map_extension <- function(assignments, k, facet, pop_coordinates,
   }
   
   #===================sanity checks=================
-  msg <- character()
-  pkg.check <- .check.installed("scatterpie")
-  pkg.check <- c(pkg.check, .check.installed("sf"))
-  if(!is.null(compass) | !is.null(scale_bar)){pkg.check <- c(pkg.check, .check.installed("ggsn"))}
-  pkg.check <- c(pkg.check, .check.installed("viridis"))
-  
-  if(is.character(pkg.check)){msg <- c(msg, pkg.check)}
-  
   
   if(!is.null(sf)){
     use_crs <- sf::st_crs(pop_coordinates)
