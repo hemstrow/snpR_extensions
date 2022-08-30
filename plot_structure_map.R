@@ -13,6 +13,7 @@ plot_structure_map_extension <- function(assignments, k, facet, pop_coordinates,
   }
   
   #===================sanity checks=================
+  msg <- character()
   
   if(!is.null(sf)){
     use_crs <- sf::st_crs(pop_coordinates)
