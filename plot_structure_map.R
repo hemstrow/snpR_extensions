@@ -1,52 +1,21 @@
-plot_structure_map_extension <- function(assignments, k, facet, pop_coordinates, sf = NULL, sf_fill_colors = "viridis", sf_line_colors = "viridis",
+plot_structure_map_extension <- function(assignments, k, facet, pop_coordinates, layers = NULL,
                                          pop_names = T, viridis.option = "viridis", alt.palette = NULL,
                                          radius_scale = 0.05, label_args = NULL, crop = FALSE,
-                                         scale_bar = list(dist = 4, dist_unit = "km", transform = T), compass = list(symbol = 16),
+                                         scale_bar = list(), 
+                                         compass = list(style = ggspatial::north_arrow_fancy_orienteering(), location = "br"),
                                          internals){
 
   
   long <- lat <- pop <- NULL
   
   #===================internals=====================
-  for(i in 1:length(internals)){
-    assign(names(internals)[i], internals[[i]])
-  }
+  # for(i in 1:length(internals)){
+  #   assign(names(internals)[i], internals[[i]])
+  # }
   
   #===================sanity checks=================
   msg <- character()
-  
-  if(!is.null(sf)){
-    use_crs <- sf::st_crs(pop_coordinates)
-    
-    # polygon palette
-    is.poly <- unlist(lapply(sf, function(x) grepl("POLYGON", sf::st_geometry_type(x)[1])))
-    poly.sum <- sum(is.poly)
-    if(poly.sum > 0){
-      if(sf_fill_colors[1] == "viridis"){
-        poly_pal <- viridis::viridis(poly.sum, alpha = .2, option = viridis.option)
-      }
-      else{
-        if(length(sf_fill_colors) != poly.sum){
-          warning("The length of the provided fill colors is not the same as the number of polygon sf objects to be plotted, defaulting to viridis.\n")
-          poly_pal <- viridis::viridis(poly.sum, alpha = .2, option = viridis.option)
-        }
-        else{
-          poly_pal <- sf_fill_colors
-        }
-      }
-      used_poly_pall <- 0
-    }
-    
-    if(sf_line_colors[1] == "viridis"){
-      sf_line_colors <- viridis::viridis(length(sf), option = viridis.option)
-    }
-    else{
-      if(length(sf_line_colors) != length(sf)){
-        warning("The length of the provided line colors is not the same as the number of sf objects to be plotted, defaulting to viridis.\n")
-        sf_line_colors <- viridis::viridis(length(sf), alpha = .2, option = viridis.option)
-      }
-    }
-  }
+  use_crs <- sf::st_crs(pop_coordinates)
   
   K_opts <- unique(assignments$plot_data$K)
   K_opts <- as.numeric(gsub("K = ", "", K_opts))
@@ -83,25 +52,17 @@ plot_structure_map_extension <- function(assignments, k, facet, pop_coordinates,
   #============make the plot====================
   mp <- ggplot2::ggplot()
   
-  # add sf overlay if requested.
-  if(!is.null(sf)){
-    for(i in 1:length(sf)){
-      sf[[i]] <- sf::st_transform(sf[[i]], use_crs)
-      
-      if(is.poly[i]){
-        mp <- mp + ggplot2::geom_sf(data = sf[[i]], fill = poly_pal[used_poly_pall + 1], color = sf_line_colors[i])
-        used_poly_pall <- used_poly_pall + 1
-      }
-      else{
-        mp <- mp + ggplot2::geom_sf(data = sf[[i]], color = sf_line_colors[i])
-      }
+  # pre-add other layers if requested
+  if(!is.null(layers)){
+    for(i in 1:length(layers)){
+      mp <- mp + layers[[i]]
     }
   }
   
   # add the scatterpie
   mp <- mp + ggplot2::theme_bw() +
     scatterpie::geom_scatterpie(data = pie_dat, mapping = ggplot2::aes(x = long, y = lat, r = r), cols = colnames(pie_dat)[4:ncol(pie_dat)]) +
-    ggplot2::theme(legend.title = ggplot2::element_blank()) +
+    ggplot2::guides(fill = ggplot2::guide_legend(title = "Ancestry Cluster")) +
     ggplot2::xlab("Longitude") + ggplot2::ylab("Latitude")
   
   if(crop){
@@ -125,42 +86,21 @@ plot_structure_map_extension <- function(assignments, k, facet, pop_coordinates,
     mp <- mp + do.call(ggrepel::geom_label_repel, label_call)
   }
   
-  # scale/compass
-  if((!is.null(scale_bar) | !is.null(compass))){
-    if(!is.null(sf)){ 
-      # make up a null sf object to set extent if needed
-      dummy <- sf[[1]]
+  if(is.list(scale_bar)){
+    if(length(scale_bar) > 0){
+      mp <- mp + do.call(ggspatial::annotation_scale, args = scale_bar)
     }
     else{
-      dummy <- pop_coordinates
+      mp <- mp + ggspatial::annotation_scale()
     }
     
-    # grab limit info for cropped data...
-    b <- ggplot2::ggplot_build(mp)
-    lims <- list(x = b$layout$panel_scales_x[[1]]$limits,
-                 y = b$layout$panel_scales_y[[1]]$limits)
-    
-    
-    
-    if(!is.null(scale_bar)){
-      scale_bar$data <- dummy
-      if(crop){
-        if(!"anchor" %in% names(scale_bar)){
-          scale_bar$anchor <- c(x = lims$x[2], y = lims$y[1] + .1*abs(lims$y[1]))
-        }
-      }
-      mp <- mp + do.call(ggsn::scalebar, args = scale_bar)
+  }
+  if(is.list(compass)){
+    if(length(compass) > 0){
+      mp <- mp + do.call(ggspatial::annotation_north_arrow, args = compass)
     }
-    
-    
-    if(!is.null(compass)){
-      compass$data <- dummy
-      if(crop){
-        if(!"anchor" %in% names(compass)){
-          compass$anchor <- c(x = lims$x[2] + abs(lims$x[2]*.05), y = lims$y[2] + abs(lims$y[2]*.05))
-        }
-      }
-      mp <- mp + do.call(ggsn::north, args = compass)
+    else{
+      mp <- mp + ggspatial::annotation_north_arrow()
     }
   }
   
